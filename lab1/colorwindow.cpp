@@ -1,5 +1,8 @@
+#include "colorwindow.h"
 #include <dxgi1_2.h>
-#include "lab1.h"
+#include <d3d11.h>
+#include <assert.h>
+#include <windows.h>
 
 static const FLOAT clearColor[4] = { 0.1f, 0.2f, 0.6f, 1.0f };
 
@@ -10,15 +13,15 @@ ColorWindow::ColorWindow(HINSTANCE hInstance)
 
 ColorWindow::~ColorWindow()
 {
-    CleanupDirectX();
+    cleanupDirectX();
 }
 
-bool ColorWindow::Initialize()
+bool ColorWindow::initialize()
 {
-    if (!InitWindow())
+    if (!initWindow())
         return false;
 
-    if (!InitDirectX())
+    if (!initDirectX())
         return false;
 
     ShowWindow(m_hWnd, SW_SHOW);
@@ -27,7 +30,7 @@ bool ColorWindow::Initialize()
     return true;
 }
 
-int ColorWindow::Run()
+int ColorWindow::run()
 {
     MSG msg = { 0 };
 
@@ -43,19 +46,19 @@ int ColorWindow::Run()
         }
         else
         {
-            RenderFrame();
+            renderFrame();
         }
     }
 
     return (int)msg.wParam;
 }
 
-bool ColorWindow::InitWindow()
+bool ColorWindow::initWindow()
 {
     WNDCLASSEX wcex;
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = WindowProc;
+    wcex.lpfnWndProc = windowProc;
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = m_hInstance;
@@ -97,57 +100,23 @@ bool ColorWindow::InitWindow()
     return true;
 }
 
-bool ColorWindow::InitDirectX()
+bool ColorWindow::initDirectX()
 {
     HRESULT hr = S_OK;
 
-    hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&m_pFactory);
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr, L"Ошибка создания DXGI Factory", L"Ошибка", MB_OK);
-        return false;
-    }
-
-    UINT adapterIndex = 0;
-    bool adapterFound = false;
-
-    while (SUCCEEDED(m_pFactory->EnumAdapters(adapterIndex, &m_pAdapter)))
-    {
-        DXGI_ADAPTER_DESC desc;
-        m_pAdapter->GetDesc(&desc);
-
-        if (wcscmp(desc.Description, L"Microsoft Basic Render Driver") != 0)
-        {
-            adapterFound = true;
-            break;
-        }
-
-        m_pAdapter->Release();
-        m_pAdapter = nullptr;
-        adapterIndex++;
-    }
-
-    if (!adapterFound)
-    {
-        MessageBox(nullptr, L"Не найден подходящий графический адаптер!", L"Ошибка", MB_OK);
-        return false;
-    }
-
     D3D_FEATURE_LEVEL featureLevel;
-    D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
+    D3D_FEATURE_LEVEL levels[] = { D3D_FEATURE_LEVEL_11_0 };
 
-    UINT createDeviceFlags = 0;
-#ifdef _DEBUG
-    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+    UINT flags = 0;
 
+    // WARP 
     hr = D3D11CreateDevice(
-        m_pAdapter,
-        D3D_DRIVER_TYPE_UNKNOWN,
         nullptr,
-        createDeviceFlags,
-        featureLevels,
-        _countof(featureLevels),
+        D3D_DRIVER_TYPE_WARP,
+        nullptr,
+        flags,
+        levels,
+        1,
         D3D11_SDK_VERSION,
         &m_pDevice,
         &featureLevel,
@@ -156,17 +125,69 @@ bool ColorWindow::InitDirectX()
 
     if (FAILED(hr))
     {
-        MessageBox(nullptr, L"Ошибка создания устройства DirectX 11!", L"Ошибка", MB_OK);
+        MessageBox(nullptr, L"Не удалось создать устройство DirectX", L"Ошибка", MB_OK);
         return false;
     }
 
-    if (!InitSwapChain())
+    IDXGIDevice* pDXGIDevice = nullptr;
+    hr = m_pDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice);
+    if (FAILED(hr)) 
         return false;
 
-    return true;
+    IDXGIAdapter* pDXGIAdapter = nullptr;
+    hr = pDXGIDevice->GetAdapter(&pDXGIAdapter);
+    if (FAILED(hr)) { 
+        pDXGIDevice->Release(); 
+        return false; 
+    }
+
+    IDXGIFactory* pFactory = nullptr;
+    hr = pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&pFactory);
+    if (FAILED(hr)) { 
+        pDXGIAdapter->Release();
+        pDXGIDevice->Release(); 
+        return false; 
+    }
+
+    DXGI_SWAP_CHAIN_DESC sd = {};
+    sd.BufferCount = 2;
+    sd.BufferDesc.Width = m_windowWidth;
+    sd.BufferDesc.Height = m_windowHeight;
+    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    sd.BufferDesc.RefreshRate.Numerator = 60;
+    sd.BufferDesc.RefreshRate.Denominator = 1;
+    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    sd.OutputWindow = m_hWnd;
+    sd.SampleDesc.Count = 1;
+    sd.SampleDesc.Quality = 0;
+    sd.Windowed = TRUE;
+    sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    sd.Flags = 0;
+
+    hr = pFactory->CreateSwapChain(m_pDevice, &sd, &m_pSwapChain);
+
+    pFactory->Release();
+    pDXGIAdapter->Release();
+    pDXGIDevice->Release();
+
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"Ошибка создания SwapChain", L"Ошибка", MB_OK);
+        return false;
+    }
+
+    ID3D11Texture2D* pBackBuffer = nullptr;
+    hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
+    if (FAILED(hr)) 
+        return false;
+
+    hr = m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pBackBufferRTV);
+    SAFE_RELEASE(pBackBuffer);
+
+    return SUCCEEDED(hr);
 }
 
-bool ColorWindow::InitSwapChain()
+bool ColorWindow::initSwapChain()
 {
     HRESULT hr = S_OK;
 
@@ -208,51 +229,42 @@ bool ColorWindow::InitSwapChain()
         return false;
     }
 
-    ResizeSwapChain(m_windowWidth, m_windowHeight);
+    resizeSwapChain(m_windowWidth, m_windowHeight);
 
     return true;
 }
 
-void ColorWindow::ResizeSwapChain(UINT width, UINT height)
+void ColorWindow::resizeSwapChain(UINT width, UINT height)
 {
-    if (!m_pSwapChain || width == 0 || height == 0)
+    if (width == 0 || height == 0)
         return;
-
-    SAFE_RELEASE(m_pBackBufferRTV);
-
-    HRESULT hr = m_pSwapChain->ResizeBuffers(
-        2,
-        width,
-        height,
-        DXGI_FORMAT_R8G8B8A8_UNORM,
-        0
-    );
-
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr, L"Ошибка изменения размера Swap Chain!", L"Ошибка", MB_OK);
-        return;
-    }
-
-    ID3D11Texture2D* pBackBuffer = nullptr;
-    hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-
-    if (SUCCEEDED(hr))
-    {
-        hr = m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pBackBufferRTV);
-        SAFE_RELEASE(pBackBuffer);
-    }
-
-    if (FAILED(hr))
-    {
-        MessageBox(nullptr, L"Ошибка создания Render Target View!", L"Ошибка", MB_OK);
-    }
 
     m_windowWidth = width;
     m_windowHeight = height;
+
+    if (m_pSwapChain)
+    {
+        SAFE_RELEASE(m_pBackBufferRTV);
+
+        HRESULT hr = m_pSwapChain->ResizeBuffers(2, width, height,
+            DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+
+        if (SUCCEEDED(hr))
+        {
+            ID3D11Texture2D* pBackBuffer = nullptr;
+            hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
+                (LPVOID*)&pBackBuffer);
+
+            if (SUCCEEDED(hr))
+            {
+                m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pBackBufferRTV);
+                SAFE_RELEASE(pBackBuffer);
+            }
+        }
+    }
 }
 
-void ColorWindow::RenderFrame()
+void ColorWindow::renderFrame()
 {
     if (!m_pDeviceContext || !m_pBackBufferRTV)
         return;
@@ -264,13 +276,13 @@ void ColorWindow::RenderFrame()
     {
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
         {
-            CleanupDirectX();
-            InitDirectX();
+            cleanupDirectX();
+            initDirectX();
         }
     }
 }
 
-void ColorWindow::CleanupDirectX()
+void ColorWindow::cleanupDirectX()
 {
     SAFE_RELEASE(m_pBackBufferRTV);
     SAFE_RELEASE(m_pSwapChain);
@@ -280,7 +292,7 @@ void ColorWindow::CleanupDirectX()
     SAFE_RELEASE(m_pFactory);
 }
 
-LRESULT CALLBACK ColorWindow::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK ColorWindow::windowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     ColorWindow* pApp = nullptr;
 
@@ -304,7 +316,7 @@ LRESULT CALLBACK ColorWindow::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
             {
                 UINT width = LOWORD(lParam);
                 UINT height = HIWORD(lParam);
-                pApp->ResizeSwapChain(width, height);
+                pApp->resizeSwapChain(width, height);
             }
             break;
 

@@ -1,12 +1,15 @@
 #pragma once
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "winmm.lib")
 
 #include <windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
-#include <assert.h>
 #include <tchar.h>
 
-// ћакросы дл€ безопасного освобождени€ ресурсов
 #define SAFE_RELEASE(p) { if (p) { (p)->Release();  (p) = nullptr; } }
 
 class ColorWindow
@@ -15,18 +18,18 @@ public:
     ColorWindow(HINSTANCE hInstance);
     ~ColorWindow();
 
-    bool Initialize();
-    int Run();
+    bool initialize();
+    int run();
 
 private:
-    bool InitWindow();
-    static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+    bool initWindow();
+    static LRESULT CALLBACK windowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-    bool InitDirectX();
-    bool InitSwapChain();
-    void ResizeSwapChain(UINT width, UINT height);
-    void RenderFrame();
-    void CleanupDirectX();
+    bool initDirectX();
+    bool initSwapChain();
+    void resizeSwapChain(UINT width, UINT height);
+    void renderFrame();
+    void cleanupDirectX();
 
     HINSTANCE m_hInstance;
     HWND m_hWnd;
