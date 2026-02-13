@@ -225,7 +225,7 @@ bool ColorWindow::initSwapChain()
 
     if (FAILED(hr))
     {
-        MessageBox(nullptr, L"Ошибка создания Swap Chain!", L"Ошибка", MB_OK);
+        MessageBox(nullptr, L"Ошибка создания Swap Chain", L"Ошибка", MB_OK);
         return false;
     }
 
