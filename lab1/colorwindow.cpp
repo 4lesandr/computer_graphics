@@ -108,6 +108,9 @@ bool ColorWindow::initDirectX()
     D3D_FEATURE_LEVEL levels[] = { D3D_FEATURE_LEVEL_11_0 };
 
     UINT flags = 0;
+#ifdef _DEBUG
+    flags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 
     // WARP 
     hr = D3D11CreateDevice(
