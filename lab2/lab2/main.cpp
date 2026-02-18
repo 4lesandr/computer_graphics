@@ -25,6 +25,34 @@ ID3D11Buffer* g_pIndexBuffer = nullptr;
 int g_ClientWidth = 800;
 int g_ClientHeight = 600;
 
+// Vertex shader
+const char* g_VSShaderCode = R"(
+struct VSInput {
+    float3 pos : POSITION;
+    float4 color : COLOR;
+};
+struct VSOutput {
+    float4 pos : SV_Position;
+    float4 color : COLOR;
+};
+VSOutput vs(VSInput vertex) {
+    VSOutput result;
+    result.pos = float4(vertex.pos, 1.0);
+    result.color = vertex.color;
+    return result;
+}
+)";
+
+// pixel shader
+const char* g_PSShaderCode = R"(
+struct VSOutput {
+    float4 pos : SV_Position;
+    float4 color : COLOR;
+};
+float4 ps(VSOutput pixel) : SV_Target0 {
+    return pixel.color;
+}
+)";
 
 struct Vertex
 {
@@ -44,53 +72,29 @@ static const uint16_t Indices[] = { 0, 2, 1 };
 #define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p) = nullptr; } }
 
 
-ID3DBlob* CompileShader(const std::wstring& filename, const std::string& entryPoint, const std::string& target)
+ID3DBlob* CompileShader(const char* shaderSource, const char* entryPoint, const char* target, const char* debugName)
 {
-    FILE* pFile = nullptr;
-    _wfopen_s(&pFile, filename.c_str(), L"rb");
-    if (!pFile)
-    {
-        MessageBox(nullptr, (L"The shader file could not be opened: " + filename).c_str(), L"Error", MB_OK);
-        return nullptr;
-    }
-
-    fseek(pFile, 0, SEEK_END);
-    long size = ftell(pFile);
-    fseek(pFile, 0, SEEK_SET);
-    std::vector<char> data(size);
-    fread(data.data(), 1, size, pFile);
-    fclose(pFile);
-
     UINT flags1 = 0;
 #ifdef _DEBUG
     flags1 |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-
     ID3DBlob* pCode = nullptr;
     ID3DBlob* pErrMsg = nullptr;
-
-    HRESULT hr = D3DCompile(
-        data.data(),
-        data.size(),
-        nullptr,            
-        nullptr,           
-        nullptr,           
-        entryPoint.c_str(),
-        target.c_str(),
-        flags1,
-        0,                 
-        &pCode,
-        &pErrMsg
-    );
-
-    if (FAILED(hr) && pErrMsg)
+    HRESULT hr = D3DCompile(shaderSource, strlen(shaderSource),
+        debugName, nullptr, nullptr,
+        entryPoint, target, flags1, 0,
+        &pCode, &pErrMsg);
+    if (FAILED(hr))
     {
-        OutputDebugStringA(static_cast<char*>(pErrMsg->GetBufferPointer()));
-        MessageBoxA(nullptr, static_cast<char*>(pErrMsg->GetBufferPointer()), "Shader Compilation Error", MB_OK);
-        SAFE_RELEASE(pErrMsg);
+        if (pErrMsg)
+        {
+            OutputDebugStringA((char*)pErrMsg->GetBufferPointer());
+            MessageBoxA(nullptr, (char*)pErrMsg->GetBufferPointer(),
+                "Shader Compilation Error", MB_OK);
+            pErrMsg->Release();
+        }
         return nullptr;
     }
-    SAFE_RELEASE(pErrMsg);
     return pCode;
 }
 
@@ -171,31 +175,25 @@ HRESULT InitD3D(HWND hWnd)
     if (FAILED(hr)) 
         return hr;
 
-    ID3DBlob* pVSBlob = CompileShader(L"triangle.vs", "vs", "vs_5_0");
-    if (!pVSBlob)
-        return E_FAIL;
+    ID3DBlob* pVSBlob = CompileShader(g_VSShaderCode, "vs", "vs_5_0", "triangle.vs");
+    if (!pVSBlob) return E_FAIL;
     hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(),
         pVSBlob->GetBufferSize(),
         nullptr,
         &g_pVertexShader);
+
     if (FAILED(hr))
     {
         SAFE_RELEASE(pVSBlob);
         return hr;
     }
 
-    ID3DBlob* pPSBlob = CompileShader(L"triangle.ps", "ps", "ps_5_0");
+    ID3DBlob* pPSBlob = CompileShader(g_PSShaderCode, "ps", "ps_5_0", "triangle.ps");
     if (!pPSBlob) return E_FAIL;
     hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(),
         pPSBlob->GetBufferSize(),
         nullptr,
         &g_pPixelShader);
-    if (FAILED(hr))
-    {
-        SAFE_RELEASE(pVSBlob);
-        SAFE_RELEASE(pPSBlob);
-        return hr;
-    }
 
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
     {
@@ -211,6 +209,7 @@ HRESULT InitD3D(HWND hWnd)
         &g_pInputLayout);
     SAFE_RELEASE(pVSBlob);
     SAFE_RELEASE(pPSBlob);
+
     if (FAILED(hr)) 
         return hr;
 
