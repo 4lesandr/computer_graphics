@@ -116,9 +116,9 @@ HRESULT InitD3D(HWND hWnd)
     scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
     UINT createDeviceFlags = 0;
-//#ifdef _DEBUG
-//    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-//#endif
+#ifdef _DEBUG
+    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 
     D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
     D3D_FEATURE_LEVEL outFeatureLevel;
