@@ -89,9 +89,8 @@ ID3DBlob* CompileShader(const char* shaderSource, const char* entryPoint, const 
         if (pErrMsg)
         {
             OutputDebugStringA((char*)pErrMsg->GetBufferPointer());
-            MessageBoxA(nullptr, (char*)pErrMsg->GetBufferPointer(),
-                "Shader Compilation Error", MB_OK);
-            pErrMsg->Release();
+            MessageBoxA(nullptr, (char*)pErrMsg->GetBufferPointer(), "Shader Compilation Error", MB_OK);
+            SAFE_RELEASE(pErrMsg);
         }
         return nullptr;
     }
@@ -117,9 +116,9 @@ HRESULT InitD3D(HWND hWnd)
     scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
     UINT createDeviceFlags = 0;
-#ifdef _DEBUG
-    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+//#ifdef _DEBUG
+//    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+//#endif
 
     D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
     D3D_FEATURE_LEVEL outFeatureLevel;
@@ -240,6 +239,15 @@ void CleanupD3D()
         SAFE_RELEASE(g_pd3dDevice);
         g_pd3dDevice = nullptr;
     }
+
+#ifdef _DEBUG
+    ID3D11Debug* pDebug = nullptr;
+    if (SUCCEEDED(g_pd3dDevice->QueryInterface(__uuidof(ID3D11Debug), (void**)&pDebug)))
+    {
+        pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+        SAFE_RELEASE(pDebug);
+    }
+#endif
 }
 
 void Render()
