@@ -14,13 +14,42 @@
 
 using namespace DirectX;
 
+const char* vertexShaderCode = R"(
+        cbuffer ModelCB : register(b0) { float4x4 model; }
+        cbuffer ViewProjCB : register(b1) { float4x4 vp; }
+        struct VSInput {
+            float3 pos : POSITION;
+            float4 color : COLOR;
+        };
+        struct VSOutput {
+            float4 pos : SV_Position;
+            float4 color : COLOR;
+        };
+        VSOutput vs(VSInput v) {
+            VSOutput o;
+            float4 worldPos = mul(float4(v.pos, 1.0), model);
+            o.pos = mul(worldPos, vp);
+            o.color = v.color;
+            return o;
+        }
+    )";
+
+const char* pixelShaderCode = R"(
+        struct VSOutput {
+            float4 pos : SV_Position;
+            float4 color : COLOR;
+        };
+        float4 ps(VSOutput p) : SV_Target0 {
+            return p.color;
+        }
+    )";
+
 HWND g_hMainWindow = nullptr;
 
 ID3D11Device* g_pD3DDevice = nullptr;
 ID3D11DeviceContext* g_pD3DContext = nullptr;
 IDXGISwapChain* g_pSwapChain = nullptr;
 ID3D11RenderTargetView* g_pBackBufferRTV = nullptr;
-ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 
 struct VertexData
 {
@@ -211,37 +240,21 @@ bool InitializeDirect3D()
     hr = D3D11CreateDeviceAndSwapChain(
         nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
         flags, levels, 1, D3D11_SDK_VERSION,
-        &scd, &g_pSwapChain, &g_pD3DDevice, &obtainedLevel, &g_pD3DContext);
+        &scd, &g_pSwapChain, &g_pD3DDevice, &obtainedLevel, &g_pD3DContext
+    );
 
     if (FAILED(hr))
         return false;
 
     ID3D11Texture2D* pBackBuffer = nullptr;
     hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
-    if (FAILED(hr)) return false;
+    if (FAILED(hr))
+        return false;
 
     hr = g_pD3DDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_pBackBufferRTV);
     pBackBuffer->Release();
-    if (FAILED(hr)) return false;
-
-    D3D11_TEXTURE2D_DESC depthDesc = {};
-    depthDesc.Width = g_WindowWidth;
-    depthDesc.Height = g_WindowHeight;
-    depthDesc.MipLevels = 1;
-    depthDesc.ArraySize = 1;
-    depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthDesc.SampleDesc.Count = 1;
-    depthDesc.SampleDesc.Quality = 0;
-    depthDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-    ID3D11Texture2D* pDepthTexture = nullptr;
-    hr = g_pD3DDevice->CreateTexture2D(&depthDesc, nullptr, &pDepthTexture);
-    if (FAILED(hr)) return false;
-
-    hr = g_pD3DDevice->CreateDepthStencilView(pDepthTexture, nullptr, &g_pDepthStencilView);
-    pDepthTexture->Release();
-    if (FAILED(hr)) return false;
+    if (FAILED(hr)) 
+        return false;
 
     return true;
 }
@@ -261,12 +274,12 @@ void CreateCubeBuffers()
     };
 
     const USHORT indices[] = {
-        0,1,2, 0,2,3, 
-        4,6,5, 4,7,6, 
-        0,3,7, 0,7,4,
-        1,5,6, 1,6,2, 
-        0,4,5, 0,5,1,
-        3,2,6, 3,6,7
+        0,2,1, 0,3,2,
+        4,5,6, 4,6,7,
+        0,7,3, 0,4,7,
+        1,6,5, 1,2,6,
+        0,5,4, 0,1,5,
+        3,6,2, 3,7,6
     };
 
     D3D11_BUFFER_DESC desc = {};
@@ -284,62 +297,48 @@ void CreateCubeBuffers()
 
 void CompileShaders()
 {
-    const char* vertexShaderCode = R"(
-        cbuffer ModelCB : register(b0) { float4x4 model; }
-        cbuffer ViewProjCB : register(b1) { float4x4 vp; }
-        struct VSInput {
-            float3 pos : POSITION;
-            float4 color : COLOR;
-        };
-        struct VSOutput {
-            float4 pos : SV_Position;
-            float4 color : COLOR;
-        };
-        VSOutput vs(VSInput v) {
-            VSOutput o;
-            float4 worldPos = mul(float4(v.pos, 1.0), model);
-            o.pos = mul(worldPos, vp);
-            o.color = v.color;
-            return o;
-        }
-    )";
-
-    const char* pixelShaderCode = R"(
-        struct VSOutput {
-            float4 pos : SV_Position;
-            float4 color : COLOR;
-        };
-        float4 ps(VSOutput p) : SV_Target0 {
-            return p.color;
-        }
-    )";
-
-    UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+       UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
     compileFlags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
     ID3DBlob* pVsBlob = nullptr, * pPsBlob = nullptr, * pErrorBlob = nullptr;
 
-    D3DCompile(vertexShaderCode, strlen(vertexShaderCode), nullptr, nullptr, nullptr,
-        "vs", "vs_5_0", compileFlags, 0, &pVsBlob, &pErrorBlob);
-    if (pErrorBlob)
-    {
-        OutputDebugStringA((const char*)pErrorBlob->GetBufferPointer());
-        pErrorBlob->Release();
-    }
-    g_pD3DDevice->CreateVertexShader(pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(),
-        nullptr, &g_pVertexShader);
+    D3DCompile(
+        vertexShaderCode, strlen(vertexShaderCode),
+        nullptr, nullptr, nullptr,
+        "vs", "vs_5_0", compileFlags, 0, 
+        &pVsBlob, &pErrorBlob
+    );
 
-    D3DCompile(pixelShaderCode, strlen(pixelShaderCode), nullptr, nullptr, nullptr,
-        "ps", "ps_5_0", compileFlags, 0, &pPsBlob, &pErrorBlob);
     if (pErrorBlob)
     {
         OutputDebugStringA((const char*)pErrorBlob->GetBufferPointer());
         pErrorBlob->Release();
     }
-    g_pD3DDevice->CreatePixelShader(pPsBlob->GetBufferPointer(), pPsBlob->GetBufferSize(),
-        nullptr, &g_pPixelShader);
+
+    g_pD3DDevice->CreateVertexShader(
+        pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(),
+        nullptr, &g_pVertexShader
+    );
+
+    D3DCompile(
+        pixelShaderCode, strlen(pixelShaderCode), 
+        nullptr, nullptr, nullptr,
+        "ps", "ps_5_0", compileFlags, 
+        0, &pPsBlob, &pErrorBlob
+    );
+
+    if (pErrorBlob)
+    {
+        OutputDebugStringA((const char*)pErrorBlob->GetBufferPointer());
+        pErrorBlob->Release();
+    }
+
+    g_pD3DDevice->CreatePixelShader(
+        pPsBlob->GetBufferPointer(), pPsBlob->GetBufferSize(),
+        nullptr, &g_pPixelShader
+    );
 
     D3D11_INPUT_ELEMENT_DESC layout[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -348,7 +347,8 @@ void CompileShaders()
     g_pD3DDevice->CreateInputLayout(layout, 2,
         pVsBlob->GetBufferPointer(),
         pVsBlob->GetBufferSize(),
-        &g_pInputLayout);
+        &g_pInputLayout
+    );
 
     SAFE_RELEASE(pVsBlob);
     SAFE_RELEASE(pPsBlob);
@@ -376,7 +376,7 @@ void UpdateCamera(double deltaTime)
 
 void Render()
 {
-    if (!g_pD3DContext || !g_pBackBufferRTV || !g_pDepthStencilView || !g_pSwapChain)
+    if (!g_pD3DContext || !g_pBackBufferRTV || !g_pSwapChain)
         return;
 
     double currentTime = (double)GetTickCount64() / 1000.0;
@@ -386,11 +386,10 @@ void Render()
 
     UpdateCamera(deltaTime);
     g_pD3DContext->ClearState();
-    g_pD3DContext->OMSetRenderTargets(1, &g_pBackBufferRTV, g_pDepthStencilView);
+    g_pD3DContext->OMSetRenderTargets(1, &g_pBackBufferRTV, nullptr);
 
     const float clearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
     g_pD3DContext->ClearRenderTargetView(g_pBackBufferRTV, clearColor);
-    g_pD3DContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
     D3D11_VIEWPORT vp = {};
     vp.Width = (float)g_WindowWidth;
@@ -454,7 +453,6 @@ void ResizeWindow(UINT newWidth, UINT newHeight)
 
     g_pD3DContext->OMSetRenderTargets(0, nullptr, nullptr);
     SAFE_RELEASE(g_pBackBufferRTV);
-    SAFE_RELEASE(g_pDepthStencilView);
 
     HRESULT hr = g_pSwapChain->ResizeBuffers(2, newWidth, newHeight,
         DXGI_FORMAT_UNKNOWN, 0);
@@ -467,25 +465,6 @@ void ResizeWindow(UINT newWidth, UINT newHeight)
     {
         g_pD3DDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_pBackBufferRTV);
         pBackBuffer->Release();
-    }
-
-    D3D11_TEXTURE2D_DESC depthDesc = {};
-    depthDesc.Width = newWidth;
-    depthDesc.Height = newHeight;
-    depthDesc.MipLevels = 1;
-    depthDesc.ArraySize = 1;
-    depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthDesc.SampleDesc.Count = 1;
-    depthDesc.SampleDesc.Quality = 0;
-    depthDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-    ID3D11Texture2D* pDepthTexture = nullptr;
-    g_pD3DDevice->CreateTexture2D(&depthDesc, nullptr, &pDepthTexture);
-    if (pDepthTexture)
-    {
-        g_pD3DDevice->CreateDepthStencilView(pDepthTexture, nullptr, &g_pDepthStencilView);
-        pDepthTexture->Release();
     }
 
     g_WindowWidth = newWidth;
@@ -504,7 +483,6 @@ void CleanupDirect3D()
     SAFE_RELEASE(g_pPixelShader);
     SAFE_RELEASE(g_pIndexBuffer);
     SAFE_RELEASE(g_pVertexBuffer);
-    SAFE_RELEASE(g_pDepthStencilView);
     SAFE_RELEASE(g_pBackBufferRTV);
     SAFE_RELEASE(g_pSwapChain);
 
