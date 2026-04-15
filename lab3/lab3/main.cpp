@@ -388,8 +388,8 @@ void Render()
     g_pD3DContext->ClearState();
     g_pD3DContext->OMSetRenderTargets(1, &g_pBackBufferRTV, nullptr);
 
-    const float clearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-    g_pD3DContext->ClearRenderTargetView(g_pBackBufferRTV, clearColor);
+    const float frameClearColor[4] = { 0.24f, 0.26f, 0.31f, 1.0f };
+    g_pD3DContext->ClearRenderTargetView(g_pBackBufferRTV, frameClearColor);
 
     D3D11_VIEWPORT vp = {};
     vp.Width = (float)g_WindowWidth;
