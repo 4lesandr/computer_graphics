@@ -44,7 +44,7 @@ const char* pixelShaderCode = R"(
         }
     )";
 
-HWND g_hAppWindow = nullptr;
+HWND g_hViewportWnd = nullptr;
 
 ID3D11Device* g_pD3DDevice = nullptr;
 ID3D11DeviceContext* g_pD3DContext = nullptr;
@@ -74,8 +74,8 @@ struct ViewProjConstantBuffer
 ID3D11Buffer* g_pModelCB = nullptr;
 ID3D11Buffer* g_pViewProjCB = nullptr;
 
-UINT g_ClientHeight = 720;
-UINT g_ClientWidth = 1280;
+UINT g_ViewHeight = 720;
+UINT g_ViewWidth = 1280;
 
 float g_CamYaw = 0.0f;       
 float g_CamPitch = 0.3f;        
@@ -113,27 +113,27 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
         return 0;
     }
 
-    RECT rc = { 0, 0, (LONG)g_ClientWidth, (LONG)g_ClientHeight };
+    RECT rc = { 0, 0, (LONG)g_ViewWidth, (LONG)g_ViewHeight };
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
     int winWidth = rc.right - rc.left;
     int winHeight = rc.bottom - rc.top;
 
-    g_hAppWindow = CreateWindowW(wc.lpszClassName, L"Лабораторная работа 4 - Куб",
+    g_hViewportWnd = CreateWindowW(wc.lpszClassName, L"Лабораторная работа 4 - Куб",
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
         winWidth, winHeight, nullptr, nullptr, hInstance, nullptr);
-    if (!g_hAppWindow)
+    if (!g_hViewportWnd)
     {
         MessageBoxW(nullptr, L"Не удалось создать окно", L"Ошибка", MB_OK | MB_ICONERROR);
         return 0;
     }
 
-    ShowWindow(g_hAppWindow, nCmdShow);
-    UpdateWindow(g_hAppWindow);
+    ShowWindow(g_hViewportWnd, nCmdShow);
+    UpdateWindow(g_hViewportWnd);
 
     if (!InitializeDirect3D())
     {
         CleanupDirect3D();
-        DestroyWindow(g_hAppWindow);
+        DestroyWindow(g_hViewportWnd);
         return -1;
     }
 
@@ -222,13 +222,13 @@ bool InitializeDirect3D()
 
     DXGI_SWAP_CHAIN_DESC scd = {};
     scd.BufferCount = 2;
-    scd.BufferDesc.Width = g_ClientWidth;
-    scd.BufferDesc.Height = g_ClientHeight;
+    scd.BufferDesc.Width = g_ViewWidth;
+    scd.BufferDesc.Height = g_ViewHeight;
     scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     scd.BufferDesc.RefreshRate.Numerator = 60;
     scd.BufferDesc.RefreshRate.Denominator = 1;
     scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scd.OutputWindow = g_hAppWindow;
+    scd.OutputWindow = g_hViewportWnd;
     scd.SampleDesc.Count = 1;
     scd.SampleDesc.Quality = 0;
     scd.Windowed = TRUE;
@@ -388,12 +388,12 @@ void Render()
     g_pD3DContext->ClearState();
     g_pD3DContext->OMSetRenderTargets(1, &g_pBackBufferRTV, nullptr);
 
-    const float kFrameClearColor[4] = { 0.24f, 0.26f, 0.31f, 1.0f };
-    g_pD3DContext->ClearRenderTargetView(g_pBackBufferRTV, kFrameClearColor);
+    const float kBackdropColor[4] = { 0.24f, 0.26f, 0.31f, 1.0f };
+    g_pD3DContext->ClearRenderTargetView(g_pBackBufferRTV, kBackdropColor);
 
     D3D11_VIEWPORT vp = {};
-    vp.Width = (float)g_ClientWidth;
-    vp.Height = (float)g_ClientHeight;
+    vp.Width = (float)g_ViewWidth;
+    vp.Height = (float)g_ViewHeight;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     g_pD3DContext->RSSetViewports(1, &vp);
@@ -409,7 +409,7 @@ void Render()
     XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
     XMMATRIX view = XMMatrixLookAtLH(eye, at, up);
 
-    float aspect = (float)g_ClientWidth / (float)g_ClientHeight;
+    float aspect = (float)g_ViewWidth / (float)g_ViewHeight;
     XMMATRIX proj = XMMatrixPerspectiveFovLH(XM_PI / 3.0f, aspect, 0.1f, 100.0f);
 
     XMMATRIX vpMatrix = view * proj;
@@ -467,8 +467,8 @@ void ResizeWindow(UINT newWidth, UINT newHeight)
         pBackBuffer->Release();
     }
 
-    g_ClientWidth = newWidth;
-    g_ClientHeight = newHeight;
+    g_ViewWidth = newWidth;
+    g_ViewHeight = newHeight;
 }
 
 void CleanupDirect3D()
