@@ -240,14 +240,6 @@ void CleanupD3D()
         g_pd3dDevice = nullptr;
     }
 
-#ifdef _DEBUG
-    ID3D11Debug* pDebug = nullptr;
-    if (SUCCEEDED(g_pd3dDevice->QueryInterface(__uuidof(ID3D11Debug), (void**)&pDebug)))
-    {
-        pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-        SAFE_RELEASE(pDebug);
-    }
-#endif
 }
 
 void Render()
