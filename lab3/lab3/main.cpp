@@ -134,22 +134,35 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     {
         CleanupDirect3D();
         DestroyWindow(g_hViewportWnd);
-        return -1;
+        return (IsWindow(g_hViewportWnd) ? -1 : 0);
     }
 
     CreateCubeBuffers();
     CompileShaders();
 
+    HRESULT hr = S_OK;
     D3D11_BUFFER_DESC desc = {};
     desc.ByteWidth = sizeof(ModelConstantBuffer);
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB);
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB);
+    if (FAILED(hr))
+    {
+        CleanupDirect3D();
+        DestroyWindow(g_hViewportWnd);
+        return (IsWindow(g_hViewportWnd) ? -1 : 0);
+    }
 
     desc.ByteWidth = sizeof(ViewProjConstantBuffer);
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pViewProjCB);
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pViewProjCB);
+    if (FAILED(hr))
+    {
+        CleanupDirect3D();
+        DestroyWindow(g_hViewportWnd);
+        return (IsWindow(g_hViewportWnd) ? -1 : 0);
+    }
 
     g_LastFrameTime = (double)GetTickCount64() / 1000.0;
 
