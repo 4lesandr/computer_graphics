@@ -134,7 +134,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     {
         CleanupDirect3D();
         DestroyWindow(g_hViewportWnd);
-        return -1;
+        return (IsWindow(g_hViewportWnd) ? -1 : 0);
     }
 
     CreateCubeBuffers();
@@ -150,7 +150,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     {
         CleanupDirect3D();
         DestroyWindow(g_hViewportWnd);
-        return -1;
+        return (IsWindow(g_hViewportWnd) ? -1 : 0);
     }
 
     desc.ByteWidth = sizeof(ViewProjConstantBuffer);
@@ -161,7 +161,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     {
         CleanupDirect3D();
         DestroyWindow(g_hViewportWnd);
-        return -1;
+        return (IsWindow(g_hViewportWnd) ? -1 : 0);
     }
 
     g_LastFrameTime = (double)GetTickCount64() / 1000.0;
