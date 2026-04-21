@@ -371,31 +371,40 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     CreateInstances();       
 
     // Create constant buffers
+    HRESULT hr = S_OK;
     D3D11_BUFFER_DESC desc = {};
     desc.ByteWidth = sizeof(ModelConstantBuffer);
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB);
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB2);
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCBPlane1);
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCBPlane2);
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB);
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB2);
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCBPlane1);
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCBPlane2);
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
 
     desc.ByteWidth = sizeof(ViewProjConstantBuffer);
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pViewProjCB);
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pViewProjCB);
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
 
     desc.ByteWidth = sizeof(SceneConstantBuffer);
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pSceneCB);
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pSceneCB);
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
 
     desc.ByteWidth = sizeof(GeomBuffer) * MAX_INSTANCES;
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     desc.CPUAccessFlags = 0;
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pGeomBufferInst);
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pGeomBufferInst);
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
 
     desc.ByteWidth = sizeof(XMUINT4) * MAX_INSTANCES; 
-    g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pVisibleIdsBuffer);
+    hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pVisibleIdsBuffer);
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
 
     g_LastFrameTime = (double)GetTickCount64() / 1000.0;
 
