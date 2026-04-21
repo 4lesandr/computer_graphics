@@ -1,4 +1,4 @@
-п»ї#define WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
@@ -109,7 +109,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
 
     if (!RegisterClassExW(&wc))
     {
-        MessageBoxW(nullptr, L"РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ РєР»Р°СЃСЃ РѕРєРЅР°", L"РћС€РёР±РєР°", MB_OK | MB_ICONERROR);
+        MessageBoxW(nullptr, L"Не удалось зарегистрировать класс окна", L"Ошибка", MB_OK | MB_ICONERROR);
         return 0;
     }
 
@@ -118,12 +118,12 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     int winWidth = rc.right - rc.left;
     int winHeight = rc.bottom - rc.top;
 
-    g_hViewportWnd = CreateWindowW(wc.lpszClassName, L"Р›Р°Р±РѕСЂР°С‚РѕСЂРЅР°СЏ СЂР°Р±РѕС‚Р° 4 - РљСѓР±",
+    g_hViewportWnd = CreateWindowW(wc.lpszClassName, L"Лабораторная работа 4 - Куб",
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
         winWidth, winHeight, nullptr, nullptr, hInstance, nullptr);
     if (!g_hViewportWnd)
     {
-        MessageBoxW(nullptr, L"РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РѕРєРЅРѕ", L"РћС€РёР±РєР°", MB_OK | MB_ICONERROR);
+        MessageBoxW(nullptr, L"Не удалось создать окно", L"Ошибка", MB_OK | MB_ICONERROR);
         return 0;
     }
 
@@ -134,7 +134,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     {
         CleanupDirect3D();
         DestroyWindow(g_hViewportWnd);
-        return (IsWindow(g_hViewportWnd) ? -1 : 0);
+        return 0;
     }
 
     CreateCubeBuffers();
@@ -150,7 +150,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     {
         CleanupDirect3D();
         DestroyWindow(g_hViewportWnd);
-        return (IsWindow(g_hViewportWnd) ? -1 : 0);
+        return 0;
     }
 
     desc.ByteWidth = sizeof(ViewProjConstantBuffer);
@@ -161,7 +161,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     {
         CleanupDirect3D();
         DestroyWindow(g_hViewportWnd);
-        return (IsWindow(g_hViewportWnd) ? -1 : 0);
+        return 0;
     }
 
     g_LastFrameTime = (double)GetTickCount64() / 1000.0;
