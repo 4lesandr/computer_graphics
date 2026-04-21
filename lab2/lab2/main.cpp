@@ -339,7 +339,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     if (!hWnd)
     {
         MessageBox(nullptr, L"Couldn't create a window", L"Error", MB_OK);
-        return -1;
+        return (IsWindow(hWnd) ? -1 : 0);
     }
 
     ShowWindow(hWnd, nCmdShow);
@@ -349,7 +349,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     {
         MessageBox(nullptr, L"Failed to initialize Direct3D", L"Error", MB_OK);
         CleanupD3D();
-        return -1;
+        return (IsWindow(hWnd) ? -1 : 0);
     }
 
     MSG msg = {};
