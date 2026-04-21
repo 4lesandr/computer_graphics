@@ -360,6 +360,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     CleanupD3D();
 
-    return static_cast<int>(msg.wParam);
+    return 0;
 }
+
 
