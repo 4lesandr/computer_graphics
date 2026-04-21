@@ -188,11 +188,21 @@ HRESULT InitD3D(HWND hWnd)
     }
 
     ID3DBlob* pPSBlob = CompileShader(g_PSShaderCode, "ps", "ps_5_0", "triangle.ps");
-    if (!pPSBlob) return E_FAIL;
+    if (!pPSBlob)
+    {
+        SAFE_RELEASE(pVSBlob);
+        return E_FAIL;
+    }
     hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(),
         pPSBlob->GetBufferSize(),
         nullptr,
         &g_pPixelShader);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pVSBlob);
+        SAFE_RELEASE(pPSBlob);
+        return hr;
+    }
 
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
     {
