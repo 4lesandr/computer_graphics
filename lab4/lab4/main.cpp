@@ -291,7 +291,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     if (FAILED(hr))
     {
         CleanupDirect3D();
-        DestroyWindow(g_hViewportWnd);
+        DestroyWindow(g_hRenderWindow);
         return -1;
     }
 
@@ -302,7 +302,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     if (FAILED(hr))
     {
         CleanupDirect3D();
-        DestroyWindow(g_hViewportWnd);
+        DestroyWindow(g_hRenderWindow);
         return -1;
     }
 
