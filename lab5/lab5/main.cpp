@@ -298,19 +298,19 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hSceneWindow); return -1; }
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB2);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hSceneWindow); return -1; }
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCBPlane1);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hSceneWindow); return -1; }
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCBPlane2);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hSceneWindow); return -1; }
 
     desc.ByteWidth = sizeof(ViewProjConstantBuffer);
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pViewProjCB);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hSceneWindow); return -1; }
 
     g_LastFrameTime = (double)GetTickCount64() / 1000.0;
 
