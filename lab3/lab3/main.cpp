@@ -186,7 +186,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     }
 
     CleanupDirect3D();
-    return (int)msg.wParam;
+    return 0;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -514,3 +514,4 @@ void CleanupDirect3D()
     SAFE_RELEASE(g_pD3DContext);
     SAFE_RELEASE(g_pD3DDevice);
 }
+
