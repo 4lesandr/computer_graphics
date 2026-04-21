@@ -1,4 +1,4 @@
-ï»¿#define WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
@@ -402,34 +402,34 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hCullingWindow); return -1; }
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCB2);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hCullingWindow); return -1; }
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCBPlane1);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hCullingWindow); return -1; }
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pModelCBPlane2);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hCullingWindow); return -1; }
 
     desc.ByteWidth = sizeof(ViewProjConstantBuffer);
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pViewProjCB);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hCullingWindow); return -1; }
 
     desc.ByteWidth = sizeof(SceneConstantBuffer);
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pSceneCB);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hCullingWindow); return -1; }
 
     desc.ByteWidth = sizeof(GeomBuffer) * MAX_INSTANCES;
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     desc.CPUAccessFlags = 0;
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pGeomBufferInst);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hCullingWindow); return -1; }
 
     desc.ByteWidth = sizeof(XMUINT4) * MAX_INSTANCES;
     hr = g_pD3DDevice->CreateBuffer(&desc, nullptr, &g_pVisibleIdsBuffer);
-    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hViewportWnd); return -1; }
+    if (FAILED(hr)) { CleanupDirect3D(); DestroyWindow(g_hCullingWindow); return -1; }
 
     g_LastFrameTime = (double)GetTickCount64() / 1000.0;
 
@@ -999,7 +999,7 @@ void CompileShaders()
         float4 ps(VSOutput i) : SV_Target0 {
             float3 color = colorTexture.Sample(colorSampler, i.uv).rgb;
             float gray = dot(color, float3(0.299, 0.587, 0.114));
-            return float4(gray, gray, gray, 1.0); // Ð²Ð¼ÐµÑÑ‚Ð¾ float4(1,0,0,1)
+            return float4(gray, gray, gray, 1.0); // âìåñòî float4(1,0,0,1)
         }
     )";
 
@@ -1476,7 +1476,7 @@ void CreateInstances()
         int texId = rand() % NUM_TEXTURES;
         float shininess = 32.0f;
         float rotSpeed = 0.5f + (rand() % 100) / 100.0f;
-        float normalMapPresence = (texId == 2) ? 1.0f : 0.0f; // Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð´Ð»Ñ like.dds
+        float normalMapPresence = (texId == 2) ? 1.0f : 0.0f; // òîëüêî äëÿ like.dds
         g_Instances[i].shineSpeedTexIdNM = XMFLOAT4(shininess, rotSpeed, (float)texId, normalMapPresence);
         g_Instances[i].angle = XMFLOAT4(pos.x, pos.y, pos.z, 0.0f);
     }
@@ -1826,13 +1826,13 @@ void Render()
     {
         g_pD3DContext->OMSetRenderTargets(1, &g_pBackBufferRTV, nullptr);
         g_pD3DContext->ClearRenderTargetView(g_pBackBufferRTV, kCullingClearTone);
-        // ÑÐ±Ñ€Ð¾Ñ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ð¹
+        // ñáðîñ ñîñòîÿíèé
         g_pD3DContext->OMSetDepthStencilState(nullptr, 0);
         g_pD3DContext->RSSetState(nullptr);
         g_pD3DContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
         g_pD3DContext->IASetInputLayout(nullptr);
         g_pD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        // ÑƒÑÑ‚Ð°Ð½Ð¾Ð²ÐºÐ° ÑˆÐµÐ¹Ð´ÐµÑ€Ð¾Ð² Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð°
+        // óñòàíîâêà øåéäåðîâ ôèëüòðà
         g_pD3DContext->VSSetShader(g_pFilterVS, nullptr, 0);
         g_pD3DContext->PSSetShader(g_pFilterPS, nullptr, 0);
         ID3D11ShaderResourceView* srv[] = { g_pColorBufferSRV };
@@ -1844,7 +1844,7 @@ void Render()
 
     if (g_pColorBufferSRV == nullptr) {
         OutputDebugStringA("ERROR: g_pColorBufferSRV is null!\n");
-        return; // Ð¸Ð»Ð¸ Ð½Ðµ Ð´ÐµÐ»Ð°Ð¹Ñ‚Ðµ Draw
+        return; // èëè íå äåëàéòå Draw
     }
 
     g_pSwapChain->Present(1, 0);
