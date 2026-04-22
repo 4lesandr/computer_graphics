@@ -487,7 +487,10 @@ void ResizeWindow(UINT newWidth, UINT newHeight)
 void CleanupDirect3D()
 {
     if (g_pD3DContext)
+    {
         g_pD3DContext->ClearState();
+        g_pD3DContext->Flush();
+    }
 
     SAFE_RELEASE(g_pModelCB);
     SAFE_RELEASE(g_pViewProjCB);
@@ -498,6 +501,7 @@ void CleanupDirect3D()
     SAFE_RELEASE(g_pVertexBuffer);
     SAFE_RELEASE(g_pBackBufferRTV);
     SAFE_RELEASE(g_pSwapChain);
+    SAFE_RELEASE(g_pD3DContext);
 
 #ifdef _DEBUG
     if (g_pD3DDevice)
@@ -510,8 +514,6 @@ void CleanupDirect3D()
         }
     }
 #endif
-
-    SAFE_RELEASE(g_pD3DContext);
     SAFE_RELEASE(g_pD3DDevice);
 }
 
