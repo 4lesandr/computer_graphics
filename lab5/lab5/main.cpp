@@ -260,7 +260,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
 
     if (!RegisterClassExW(&wc))
     {
-        MessageBoxW(nullptr, L"Не удалось зарегистрировать класс окна", L"Ошибка", MB_OK | MB_ICONERROR);
+        MessageBoxW(nullptr, L"?? ??????? ???????????????? ????? ????", L"??????", MB_OK | MB_ICONERROR);
         return 0;
     }
 
@@ -269,12 +269,12 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE,
     int winWidth = rc.right - rc.left;
     int winHeight = rc.bottom - rc.top;
 
-    g_hSceneWindow = CreateWindowW(wc.lpszClassName, L"Лабораторная работа 8 - Глубина и прозрачность",
+    g_hSceneWindow = CreateWindowW(wc.lpszClassName, L"???????????? ?????? 8 - ??????? ? ????????????",
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
         winWidth, winHeight, nullptr, nullptr, hInstance, nullptr);
     if (!g_hSceneWindow)
     {
-        MessageBoxW(nullptr, L"Не удалось создать окно", L"Ошибка", MB_OK | MB_ICONERROR);
+        MessageBoxW(nullptr, L"?? ??????? ??????? ????", L"??????", MB_OK | MB_ICONERROR);
         return 0;
     }
 
@@ -438,37 +438,37 @@ bool InitializeDirect3D()
 void CreateBuffers()
 {
     const TexturedVertex cubeVertices[] = {
-        // Задняя грань (z = -0.5)
+        // ?????? ????? (z = -0.5)
         { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT2(0.0f, 1.0f) },
         { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT2(1.0f, 1.0f) },
         { XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT2(1.0f, 0.0f) },
         { XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT2(0.0f, 0.0f) },
 
-        // Передняя грань (z = 0.5)
+        // ???????? ????? (z = 0.5)
         { XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT2(0.0f, 1.0f) },
         { XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT2(1.0f, 1.0f) },
         { XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT2(1.0f, 0.0f) },
         { XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT2(0.0f, 0.0f) },
 
-        // Левая грань (x = -0.5)
+        // ????? ????? (x = -0.5)
         { XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT2(0.0f, 1.0f) },
         { XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT2(1.0f, 1.0f) },
         { XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT2(1.0f, 0.0f) },
         { XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT2(0.0f, 0.0f) },
 
-        // Правая грань (x = 0.5)
+        // ?????? ????? (x = 0.5)
         { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT2(0.0f, 1.0f) },
         { XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT2(1.0f, 1.0f) },
         { XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT2(1.0f, 0.0f) },
         { XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT2(0.0f, 0.0f) },
 
-        // Верхняя грань (y = 0.5)
+        // ??????? ????? (y = 0.5)
         { XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT2(0.0f, 1.0f) },
         { XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT2(1.0f, 1.0f) },
         { XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT2(1.0f, 0.0f) },
         { XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT2(0.0f, 0.0f) },
 
-        // Нижняя грань (y = -0.5)
+        // ?????? ????? (y = -0.5)
         { XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT2(0.0f, 1.0f) },
         { XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT2(1.0f, 1.0f) },
         { XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT2(1.0f, 0.0f) },
@@ -476,12 +476,12 @@ void CreateBuffers()
     };
 
     const USHORT cubeIndices[] = {
-         0,  2,  1,  0,  3,  2,  // задняя
-         4,  5,  6,  4,  6,  7,  // передняя
-         8, 10,  9,  8, 11, 10,  // левая
-        12, 14, 13, 12, 15, 14,  // правая
-        16, 18, 17, 16, 19, 18,  // верхняя
-        20, 22, 21, 20, 23, 22   // нижняя
+         0,  2,  1,  0,  3,  2,  // ??????
+         4,  5,  6,  4,  6,  7,  // ????????
+         8, 10,  9,  8, 11, 10,  // ?????
+        12, 14, 13, 12, 15, 14,  // ??????
+        16, 18, 17, 16, 19, 18,  // ???????
+        20, 22, 21, 20, 23, 22   // ??????
     };
 
     D3D11_BUFFER_DESC desc = {};
@@ -575,7 +575,7 @@ void CompileShaders()
     const char* planePS = R"(
         struct VSOutput { float4 pos : SV_Position; float2 uv : TEXCOORD; };
         float4 ps(VSOutput p) : SV_Target0 {
-            return float4(1.0f, 0.0f, 0.0f, 0.5f); // красный с альфа 0.5
+            return float4(1.0f, 0.0f, 0.0f, 0.5f); // ??????? ? ????? 0.5
         }
     )";
 
@@ -631,7 +631,7 @@ void CompileShaders()
     };
     g_pD3DDevice->CreateInputLayout(layout, 2, pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), &g_pInputLayout);
 
-    // Skybox шейдеры
+    // Skybox ???????
     SAFE_RELEASE(pVsBlob);
     D3DCompile(skyboxVS, strlen(skyboxVS), nullptr, nullptr, nullptr, "vs", "vs_5_0", flags, 0, &pVsBlob, &pErrorBlob);
     if (pErrorBlob) { OutputDebugStringA((const char*)pErrorBlob->GetBufferPointer()); pErrorBlob->Release(); }
@@ -947,7 +947,7 @@ void Render()
     g_pD3DContext->VSSetConstantBuffers(0, 2, cbsCube);
     g_pD3DContext->DrawIndexed(36, 0, 0);
 
-    // Прозрачные плоскости
+    // ?????????? ?????????
     XMVECTOR eyePos = eye;
     struct PlaneInfo {
         XMMATRIX world;
@@ -960,7 +960,7 @@ void Render()
     assert(g_pPlaneVertexBuffer != nullptr);
     assert(g_pPlaneIndexBuffer != nullptr);
 
-    // Плоскость 1
+    // ????????? 1
     XMMATRIX plane1World = XMMatrixTranslation(0.0f, 0.0f, 0.6f) * XMMatrixRotationY(angle);
     planes[0].world = plane1World;
     XMVECTOR center1 = plane1World.r[3];
@@ -968,7 +968,7 @@ void Render()
     planes[0].distance = XMVectorGetX(XMVector3Length(toEye1));
     planes[0].modelBuffer = g_pModelCBPlane1;
 
-    // Плоскость 2 
+    // ????????? 2 
     XMMATRIX plane2World = XMMatrixTranslation(0.0f, 0.0f, 1.2f) * XMMatrixRotationY(angle);
     planes[1].world = plane2World;
     XMVECTOR center2 = plane2World.r[3];
@@ -1062,7 +1062,10 @@ void ResizeWindow(UINT newWidth, UINT newHeight)
 void CleanupDirect3D()
 {
     if (g_pD3DContext)
+    {
         g_pD3DContext->ClearState();
+        g_pD3DContext->Flush();
+    }
 
     SAFE_RELEASE(g_pModelCB);
     SAFE_RELEASE(g_pModelCB2);
@@ -1092,6 +1095,7 @@ void CleanupDirect3D()
     SAFE_RELEASE(g_pDepthNoWrite);
     SAFE_RELEASE(g_pRSCullBack);
     SAFE_RELEASE(g_pRSCullNone);
+    SAFE_RELEASE(g_pD3DContext);
 
 #ifdef _DEBUG
     if (g_pD3DDevice)
@@ -1104,8 +1108,6 @@ void CleanupDirect3D()
         }
     }
 #endif
-
-    SAFE_RELEASE(g_pD3DContext);
     SAFE_RELEASE(g_pD3DDevice);
 }
 
