@@ -1898,7 +1898,10 @@ void ResizeWindow(UINT newWidth, UINT newHeight)
 void CleanupDirect3D()
 {
     if (g_pD3DContext)
+    {
         g_pD3DContext->ClearState();
+        g_pD3DContext->Flush();
+    }
 
     SAFE_RELEASE(g_pModelCB);
     SAFE_RELEASE(g_pModelCB2);
@@ -1955,6 +1958,7 @@ void CleanupDirect3D()
     SAFE_RELEASE(g_pCullParamsCB);
     SAFE_RELEASE(g_pFrustumPlanesCB);
     for (int i = 0; i < 10; ++i) SAFE_RELEASE(g_pQueries[i]);
+    SAFE_RELEASE(g_pD3DContext);
 
 #ifdef _DEBUG
     if (g_pD3DDevice)
@@ -1967,8 +1971,6 @@ void CleanupDirect3D()
         }
     }
 #endif
-
-    SAFE_RELEASE(g_pD3DContext);
     SAFE_RELEASE(g_pD3DDevice);
 }
 
