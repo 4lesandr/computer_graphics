@@ -311,14 +311,14 @@ void TransformAABB(const XMMATRIX& transform, const XMVECTOR& localMin, const XM
 bool IsAABBInsideFrustum(const XMVECTOR planes[6], const XMVECTOR& aabbMin, const XMVECTOR& aabbMax);
 void UpdateInstanceTransforms(double time);
 
-// Â ãëîáàëüíîé îáëàñòè (ðÿäîì ñ äðóãèìè òåêñòóðàìè)
+// ˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜ (˜˜˜˜˜ ˜ ˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜)
 ID3D11Texture2D* g_pColorBuffer = nullptr;
 ID3D11RenderTargetView* g_pColorBufferRTV = nullptr;
 ID3D11ShaderResourceView* g_pColorBufferSRV = nullptr;
 
-// Ôëàã âêëþ÷åíèÿ ôèëüòðà
+// ˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜
 bool g_useFilter = true;
-// Ïèêñåëüíûé øåéäåð äëÿ ôèëüòðà
+// ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜
 ID3D11PixelShader* g_pFilterPS = nullptr;
 ID3D11VertexShader* g_pFilterVS = nullptr;
 
@@ -772,7 +772,7 @@ void CompileShaders()
                 float4x4 norm;
                 float4 shineSpeedTexIdNM; // x=shininess, y=rot speed, z=tex id, w=normal map presence
                 float4 angle;
-            } geomBuffer[100];
+            } geomBuffer[10];
         };
         cbuffer ViewProjCB : register(b2)
         {
@@ -780,7 +780,7 @@ void CompileShaders()
         };
         cbuffer VisibleIds : register(b3) 
         {
-            uint4 ids[100];
+            uint4 ids[10];
         };
         struct VSInput
         {
@@ -827,7 +827,7 @@ void CompileShaders()
                 float4x4 norm;
                 float4 shineSpeedTexIdNM;
                 float4 angle;
-            } geomBuffer[100];
+            } geomBuffer[10];
         };
         cbuffer SceneCB : register(b3)
         {
@@ -843,7 +843,7 @@ void CompileShaders()
         };
         cbuffer VisibleIds : register(b4)
         {
-            uint4 ids[100];
+            uint4 ids[10];
         };
         struct VSOutput
         {
@@ -916,7 +916,7 @@ void CompileShaders()
         float4 ps(VSOutput i) : SV_Target0 {
             float3 color = colorTexture.Sample(colorSampler, i.uv).rgb;
             float gray = dot(color, float3(0.299, 0.587, 0.114));
-            return float4(gray, gray, gray, 1.0); // âìåñòî float4(1,0,0,1)
+            return float4(gray, gray, gray, 1.0); // ˜˜˜˜˜˜ float4(1,0,0,1)
         }
     )";
 
@@ -1308,7 +1308,7 @@ void CreateInstances()
         int texId = rand() % NUM_TEXTURES;
         float shininess = 32.0f;
         float rotSpeed = 0.5f + (rand() % 100) / 100.0f;
-        float normalMapPresence = (texId == 2) ? 1.0f : 0.0f; // òîëüêî äëÿ like.dds
+        float normalMapPresence = (texId == 2) ? 1.0f : 0.0f; // ˜˜˜˜˜˜ ˜˜˜ like.dds
         g_Instances[i].shineSpeedTexIdNM = XMFLOAT4(shininess, rotSpeed, (float)texId, normalMapPresence);
         g_Instances[i].angle = XMFLOAT4(pos.x, pos.y, pos.z, 0.0f);
     }
@@ -1409,7 +1409,7 @@ void Render()
 
     g_pD3DContext->ClearState();
 
-   // Âûáîð öåëåâîãî ðåíäåð - òàðãåòà
+   // ˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ - ˜˜˜˜˜˜˜
     ID3D11RenderTargetView * sceneTarget = g_useFilter ? g_pColorBufferRTV : g_pBackBufferRTV;
     g_pD3DContext->OMSetRenderTargets(1, &sceneTarget, g_pDepthStencilView);
 
@@ -1614,13 +1614,13 @@ void Render()
     {
         g_pD3DContext->OMSetRenderTargets(1, &g_pBackBufferRTV, nullptr);
         g_pD3DContext->ClearRenderTargetView(g_pBackBufferRTV, kSceneClearTint);
-        // ñáðîñ ñîñòîÿíèé
+        // ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜
         g_pD3DContext->OMSetDepthStencilState(nullptr, 0);
         g_pD3DContext->RSSetState(nullptr);
         g_pD3DContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
         g_pD3DContext->IASetInputLayout(nullptr);
         g_pD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        // óñòàíîâêà øåéäåðîâ ôèëüòðà
+        // ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜
         g_pD3DContext->VSSetShader(g_pFilterVS, nullptr, 0);
         g_pD3DContext->PSSetShader(g_pFilterPS, nullptr, 0);
         ID3D11ShaderResourceView* srv[] = { g_pColorBufferSRV };
@@ -1632,7 +1632,7 @@ void Render()
 
     if(g_pColorBufferSRV == nullptr) {
         OutputDebugStringA("ERROR: g_pColorBufferSRV is null!\n");
-        return; // èëè íå äåëàéòå Draw
+        return; // ˜˜˜ ˜˜ ˜˜˜˜˜˜˜ Draw
     }
 
     g_pSwapChain->Present(1, 0);
@@ -1686,7 +1686,10 @@ void ResizeWindow(UINT newWidth, UINT newHeight)
 void CleanupDirect3D()
 {
     if (g_pD3DContext)
+    {
         g_pD3DContext->ClearState();
+        g_pD3DContext->Flush();
+    }
 
     SAFE_RELEASE(g_pModelCB);
     SAFE_RELEASE(g_pModelCB2);
@@ -1732,6 +1735,7 @@ void CleanupDirect3D()
     SAFE_RELEASE(g_pColorBufferSRV);
     SAFE_RELEASE(g_pFilterVS);
     SAFE_RELEASE(g_pFilterPS);
+    SAFE_RELEASE(g_pD3DContext);
 
 #ifdef _DEBUG
     if (g_pD3DDevice)
@@ -1744,8 +1748,6 @@ void CleanupDirect3D()
         }
     }
 #endif
-
-    SAFE_RELEASE(g_pD3DContext);
     SAFE_RELEASE(g_pD3DDevice);
 }
 
