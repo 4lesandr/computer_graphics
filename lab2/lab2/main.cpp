@@ -94,6 +94,7 @@ ID3DBlob* CompileShader(const char* shaderSource, const char* entryPoint, const 
         }
         return nullptr;
     }
+    SAFE_RELEASE(pErrMsg);
     return pCode;
 }
 
@@ -227,6 +228,12 @@ HRESULT InitD3D(HWND hWnd)
 
 void CleanupD3D()
 {
+    if (g_pDeviceContext)
+    {
+        g_pDeviceContext->ClearState();
+        g_pDeviceContext->Flush();
+    }
+
     SAFE_RELEASE(g_pInputLayout);
     SAFE_RELEASE(g_pPixelShader);
     SAFE_RELEASE(g_pVertexShader);
@@ -242,7 +249,7 @@ void CleanupD3D()
         ID3D11Debug* pDebug = nullptr;
         if (SUCCEEDED(g_pd3dDevice->QueryInterface(__uuidof(ID3D11Debug), (void**)&pDebug)))
         {
-            pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+            pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
             SAFE_RELEASE(pDebug);
         }
 #endif
